@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const Home = ({ userObj }) => {
-  const filenput = useRef();
+  const fileInput = useRef();
   const [nweet, setNweet] = useState("");
   const [nweets, setNweets] = useState([]);
   const [attachment, setAttachment] = useState();
@@ -19,17 +19,23 @@ const Home = ({ userObj }) => {
   }, []);
   const onSubmit = async (event) => {
     event.preventDefault();
-    const fileRef = storageService
-      .ref()
-      .child(`${userObj._delegate.uid}/${uuidv4()}`);
-    const response = await fileRef.putString(attachment, "data_url");
-    console.log(response);
-    // await dbService.collection("nweets").add({
-    //   text: nweet,
-    //   createdAt: Date.now(),
-    //   creatorId: userObj._delegate.uid,
-    // });
-    // setNweet("");
+    let attachmentUrl = "";
+    if (attachment !== "") {
+      const attachmentRef = storageService
+        .ref()
+        .child(`${userObj._delegate.uid}/${uuidv4()}`);
+      const response = await attachmentRef.putString(attachment, "data_url");
+      attachmentUrl = await response.ref.getDownloadURL();
+    }
+    const nweetObj = {
+      text: nweet,
+      createdAt: Date.now(),
+      creatorId: userObj._delegate.uid,
+      attachmentUrl,
+    };
+    await dbService.collection("nweets").add(nweetObj);
+    setNweet("");
+    setAttachment("");
   };
   const onChange = (event) => {
     const {
@@ -52,7 +58,7 @@ const Home = ({ userObj }) => {
     reader.readAsDataURL(theFile);
   };
   const onClearAttachment = () => {
-    filenput.current.value = null;
+    fileInput.current.value = null;
     setAttachment(null);
   };
   return (
@@ -69,7 +75,7 @@ const Home = ({ userObj }) => {
           type="file"
           accept="image/*"
           onChange={onFileChange}
-          ref={filenput}
+          ref={fileInput}
         />
         <input type="submit" value="Nweet" />
         {attachment && (
