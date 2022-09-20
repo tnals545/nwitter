@@ -23,14 +23,14 @@ const Home = ({ userObj }) => {
     if (attachment !== "") {
       const attachmentRef = storageService
         .ref()
-        .child(`${userObj._delegate.uid}/${uuidv4()}`);
+        .child(`${userObj.uid}/${uuidv4()}`);
       const response = await attachmentRef.putString(attachment, "data_url");
       attachmentUrl = await response.ref.getDownloadURL();
     }
     const nweetObj = {
       text: nweet,
       createdAt: Date.now(),
-      creatorId: userObj._delegate.uid,
+      creatorId: userObj.uid,
       attachmentUrl,
     };
     await dbService.collection("nweets").add(nweetObj);
@@ -90,7 +90,7 @@ const Home = ({ userObj }) => {
           <Nweet
             key={nweet.id}
             nweetObj={nweet}
-            isOwner={nweet.creatorId === userObj._delegate.uid}
+            isOwner={nweet.creatorId === userObj.uid}
           />
         ))}
       </div>
